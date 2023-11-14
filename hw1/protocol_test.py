@@ -44,16 +44,17 @@ def run_echo_test(iterations, msg_size):
 
 current_netem_state = None
 
+
 def setup_netem(packet_loss, duplicate, reorder):
     global current_netem_state
     if current_netem_state == (packet_loss, duplicate, reorder):
         return
     current_netem_state = (packet_loss, duplicate, reorder)
-    delay = 0
+    netem_cmd = f"tc qdisc replace dev lo root netem loss {packet_loss * 100}% duplicate {duplicate * 100}%"
     if reorder > 0:
-        delay = 10
+        netem_cmd += f" reorder {100 - reorder}% delay 10ms"
 
-    os.system(f"tc qdisc replace dev lo root netem loss {packet_loss * 100}% duplicate {duplicate * 100}% reorder {reorder * 100}% delay {delay}ms")
+    os.system(netem_cmd)
 
 
 @pytest.mark.parametrize("iterations", [10, 100, 1000])
